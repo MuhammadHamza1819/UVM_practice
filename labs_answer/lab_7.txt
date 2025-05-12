@@ -1,0 +1,76 @@
+////////////////////////////////////////// link for EDA PLAYGROUND ///////////////////////////////////////////////////////////////////////////////
+
+https://www.edaplayground.com/x/Wygc
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+class base_seq extends uvm_sequence#(seq_item);
+  seq_item req;
+  `uvm_object_utils(base_seq)
+  
+  function new (string name = "base_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    `uvm_info(get_type_name(), "Base seq: Inside Body", UVM_LOW);
+    `uvm_do(req);
+  endtask
+endclass
+
+
+class rand_seq extends base_seq;
+  
+  `uvm_object_utils(rand_seq)
+
+  function new(string name = "rand_seq");
+    super.new(name);
+  endfunction
+  
+  virtual task body();
+
+    `uvm_info(get_type_name(), "RAND_seq : inside body", UVM_LOW);
+    
+    `uvm_do_with(req, {});
+  endtask
+  
+endclass
+
+//////////////////////////////////////////////////////////////////////////////////
+
+`include "package.sv"
+class base_test extends uvm_test;
+  env env_o;
+  base_seq bseq;
+  rand_seq rseq;
+  
+  `uvm_component_utils(base_test)
+  
+  function new(string name = "base_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    env_o = env::type_id::create("env_o", this);
+  endfunction
+  
+  task run_phase(uvm_phase phase);
+    phase.raise_objection(this);
+    bseq = base_seq::type_id::create("bseq");
+    rseq = rand_seq::type_id::create("rseq");  
+    
+      bseq.start(env_o.agt.seqr);
+	#10;
+    
+      rseq.start(env_o.agt.seqr);
+    #10;
+    
+    
+    phase.drop_objection(this);
+    `uvm_info(get_type_name, "End of testcase", UVM_LOW);
+  endtask
+endclass

@@ -1,0 +1,45 @@
+Task 1: UVM Testbench Block Diagram and TLM Usage
+UVM Testbench Structure & TLM Usage
+A typical UVM testbench consists of the following components:
+
+ Test (test) → Controls the test execution.
+Environment (env) → Contains all components like producer and consumer_wrapper.
+Agent (Optional, Not Present Here) → Manages sequence generation and drivers.
+ Producer (producer) → Generates data and sends it using TLM (Transaction-Level Modeling).
+ Consumer (consumer) → Receives data using TLM interfaces.
+ Consumer Wrapper (consumer_wrapper) → Acts as a bridge between the producer and consumer.
+ TLM Interfaces:
+
+uvm_analysis_port (Producer to Consumer Wrapper)
+
+uvm_analysis_export (Consumer Wrapper to Consumer)
+
+uvm_analysis_imp (Consumer receives data)
+
+Task 2: Code Analysis Based on the UVM Block Diagram
+Code Components & TLM Usage
+
+Component				TLM Used							Purpose
+Producer (producer)			uvm_analysis_port #(seq_item) a_put;				Sends transactions (data) to Consumer Wrapper
+Consumer Wrapper (consumer_wrapper)	uvm_analysis_export #(seq_item) a_export;			Connects producer to consumer
+Consumer (consumer)			uvm_analysis_imp #(seq_item, consumer) a_imp;			Receives transactions from Consumer Wrapper
+Environment (env)			Connects producer.a_put → consumer_wrapper.a_export		Ensures correct data flow
+Test (test)				Instantiates env						Runs the test
+
+Data Flow in This Testbench
+
+Producer (producer) generates a random transaction (seq_item).
+Producer sends data using a_put.write(req).
+Consumer Wrapper (consumer_wrapper) receives data via a_export.
+Consumer (consumer) gets data via a_imp.write(req).
+Received data is printed in consumer.
+
+Conclusion
+
+TLM (Transaction-Level Modeling) is used to transfer data between producer and consumer using UVM ports.
+
+Analysis port (a_put) sends data from producer.
+
+Analysis export (a_export) allows consumer wrapper to forward transactions.
+
+Analysis imp (a_imp) enables consumer to receive data and process it.

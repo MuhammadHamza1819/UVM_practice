@@ -1,0 +1,94 @@
+////////////////////////////////////////// link for EDA PLAYGROUND//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+https://www.edaplayground.com/x/ifn6
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+`include "lab_5.sv"
+
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+
+module top;
+  
+  initial 
+    begin
+      run_test("test");
+    end
+endmodule
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ class agent extends uvm_agent;
+ 
+  `uvm_component_utils(agent)
+  
+  function new(string name = "agent", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+
+  int i, j;
+ 
+  virtual function void build_phase (uvm_phase phase);
+     super.build();
+
+    if (uvm_config_db #(int)::get(null, "uvm_test_top", "i", i) &&
+        uvm_config_db #(int)::get(null, "uvm_test_top", "j", j)) 
+    begin
+      `uvm_info ("ENV", $sformatf ("Found %d, %d", i, j), UVM_MEDIUM)
+    end
+  endfunction
+endclass
+
+
+
+class env extends uvm_env;
+  
+  `uvm_component_utils(env)
+  
+  function new(string name = "env", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  int i = 5;
+  int j = 9;
+  
+  agent m_agent;
+   
+  virtual function void build_phase (uvm_phase phase);
+    super.build();
+    
+    m_agent = agent::type_id::create("m_agent", this);
+
+    uvm_config_db #(int)::set(null, "uvm_test_top", "i", i);
+    uvm_config_db #(int)::set(null, "uvm_test_top", "j", j);
+    
+  endfunction
+endclass
+
+
+
+
+
+class test extends uvm_test;
+
+  `uvm_component_utils(test)
+  
+  function new(string name = "test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  env m_env;
+ 
+  function void build_phase(uvm_phase phase);
+   super.build();
+    
+    m_env = env::type_id::create("m_env", this);
+  endfunction 
+endclass
+
+
+

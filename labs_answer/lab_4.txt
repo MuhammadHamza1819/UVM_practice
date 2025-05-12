@@ -1,0 +1,169 @@
+////////////////////////////////////////// link for EDA PLAYGROUND//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+https://www.edaplayground.com/x/ifn6
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+`include "lab_4.sv"
+
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+
+module top;
+  
+  initial 
+    begin
+      run_test("test");
+    end
+endmodule
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// ================================
+// UVM DRIVER 1
+// ================================
+class driver1 extends uvm_driver;
+  
+  `uvm_component_utils(driver1)
+
+  function new (string name = "driver1", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info(get_type_name(), "DRIVER_1 build phase executed", UVM_LOW);
+  endfunction
+endclass
+
+
+// ================================
+// UVM DRIVER 2 (Overrides DRIVER 1)
+// ================================
+
+
+class driver2 extends driver1;
+
+  `uvm_component_utils(driver2)
+  
+  function new (string name = "driver2", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction  
+   
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    `uvm_info(get_type_name(), "DRIVER_2 build phase executed", UVM_LOW);
+  endfunction
+
+endclass
+
+
+// ================================
+// UVM AGENT 1
+// ================================
+class agent1 extends uvm_agent;
+  
+  `uvm_component_utils(agent1)
+  driver1 my_driver_1;  // Will be overridden to driver2
+
+  function new (string name = "agent1", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    
+    my_driver_1 = driver1::type_id::create("my_driver_1", this);
+    `uvm_info("AGENT1", "Agent1 build phase executed", UVM_LOW);
+  endfunction 
+
+endclass
+
+
+// ================================
+// UVM AGENT 2
+// ================================
+
+
+class agent2 extends uvm_agent;
+  
+  `uvm_component_utils(agent2)
+  driver1 my_driver_2;  // Will be overridden to driver2
+
+  function new (string name = "agent2", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    
+    my_driver_2 = driver1::type_id::create("my_driver_2", this);
+    `uvm_info("AGENT2", "Agent2 build phase executed", UVM_LOW);
+  endfunction
+  
+endclass
+
+
+// ================================
+// UVM ENVIRONMENT
+// ================================
+
+
+class env extends uvm_env;
+  
+  `uvm_component_utils(env)
+
+  agent1 m_agent1;
+  agent2 m_agent2;
+
+  function new (string name = "env", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+  
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    
+    m_agent1 = agent1::type_id::create("My_agent_1", this);
+    m_agent2 = agent2::type_id::create("My_agent_2", this);
+  endfunction
+  
+endclass
+
+
+// ================================
+// UVM TEST
+// ================================
+
+class test extends uvm_test;
+  
+  `uvm_component_utils(test)
+
+  env m_env;  // Environment instance
+
+  function new(string name = "test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction  
+
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    
+    // Override driver1 with driver2 for all instances
+    set_type_override_by_type(driver1::get_type(), driver2::get_type(), 1);
+
+    // Creating environment
+    m_env = env::type_id::create("m_env", this);
+  endfunction
+
+  function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
+    `uvm_info("TEST", "Printing UVM Topology:", UVM_NONE)
+    uvm_top.print_topology();
+    uvm_factory::get().print();
+  endfunction
+
+endclass

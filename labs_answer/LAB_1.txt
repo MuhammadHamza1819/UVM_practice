@@ -1,0 +1,76 @@
+////////////////////////////////////////////////////// LINK FOR EDAPLAYGROUND  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+https://www.edaplayground.com/x/ifn6
+
+
+/////////////////////////////////////////////////////// LAB -- 2 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+class mem_seq_item extends uvm_sequence_item;
+  
+  rand bit [3:0] addr;
+  rand bit wr_en;
+  rand bit rd_en;
+  rand bit [7:0] wdata;
+  bit [7:0] rdata; 
+  
+  constraint wr_rd_c { wr_en != rd_en; }; 
+  
+  `uvm_object_utils_begin(mem_seq_item)
+    `uvm_field_int(addr, UVM_ALL_ON)
+    `uvm_field_int(wr_en, UVM_NOPRINT)
+    `uvm_field_int(rd_en, UVM_DEFAULT)
+    `uvm_field_int(wdata, UVM_COPY | UVM_COMPARE) 
+  `uvm_object_utils_end
+
+  function new(string name = "mem_seq_item");
+    super.new(name);
+  endfunction
+
+endclass
+
+
+////////////////////////////////////////////////
+
+`include "lab_2.sv" 
+
+module seq_item_tb;
+  
+  import uvm_pkg::*;
+
+  mem_seq_item seq_item_1, seq_item_2;
+  
+  initial begin
+    // Creating objects using UVM factory
+    seq_item_1 = mem_seq_item::type_id::create("seq_item_1");
+    seq_item_2 = mem_seq_item::type_id::create("seq_item_2");
+
+    if (!seq_item_1.randomize()) 
+      `uvm_error("TEST", "Randomization failed for seq_item_1")
+
+    // Printing original seq_item_1
+    seq_item_1.print();
+
+    // Copy seq_item_1 into seq_item_2
+    seq_item_2.copy(seq_item_1);
+
+    // Printing copied seq_item_2
+    seq_item_2.print();
+    
+    seq_item_1.addr = 10;
+    // Modify addr of seq_item_2
+    seq_item_2.addr = 10;
+
+    // Compare seq_item_1 and seq_item_2, store result
+    if (seq_item_1.compare(seq_item_2))
+      `uvm_info("COMPARE", " Items Match", UVM_LOW)
+    else
+      `uvm_info("COMPARE", "Items Differ", UVM_LOW)
+
+    // Print debug information
+    `uvm_info("DEBUG", "seq_item_1", UVM_LOW);
+    `uvm_info("DEBUG", "seq_item_2", UVM_LOW);
+  end
+  
+endmodule
